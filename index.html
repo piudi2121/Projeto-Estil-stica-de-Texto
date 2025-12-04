@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+			rel="stylesheet"
+		/>
+		<title>Protótipo: Jogo de Figuras de Linguagem — Demo</title>
+		<style>
+			:root {
+				--bg: #0f1724;
+				--card: #0b1220;
+				--muted: #94a3b8;
+				--accent: #7c3aed;
+				--glass: rgba(255, 255, 255, 0.03);
+			}
+			* {
+				box-sizing: border-box;
+			}
+			html,
+			body {
+				height: 100%;
+				margin: 0;
+				font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+					Roboto, "Helvetica Neue", Arial;
+			}
+			body {
+				background: linear-gradient(180deg, #071026 0%, #081427 60%);
+				color: #e6eef8;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: 32px;
+				transition: background 600ms ease;
+			}
+			.frame {
+				display: none;
+				width: 960px;
+				max-width: 96vw;
+				background: linear-gradient(
+					180deg,
+					rgba(255, 255, 255, 0.02),
+					rgba(255, 255, 255, 0.01)
+				);
+				border-radius: 14px;
+				padding: 28px;
+				box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
+			}
+			header {
+				display: flex;
+				align-items: center;
+				gap: 16px;
+				margin-bottom: 20px;
+			}
+			.logo {
+				width: 48px;
+				height: 48px;
+				border-radius: 10px;
+				background: linear-gradient(135deg, var(--accent), #06b6d4);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-weight: 700;
+			}
+			h1 {
+				font-size: 18px;
+				margin: 0;
+			}
+			p.lead {
+				margin: 0;
+				color: var(--muted);
+				font-size: 13px;
+			}
+
+			.center {
+				display: grid;
+				grid-template-columns: 1fr 360px;
+				gap: 20px;
+			}
+			.card {
+				background: var(--card);
+				border-radius: 12px;
+				padding: 18px;
+				backdrop-filter: blur(6px);
+			}
+			.muted {
+				color: var(--muted);
+				font-size: 13px;
+			}
+
+			.lobby-players {
+				display: flex;
+				flex-direction: column;
+				gap: 8px;
+			}
+			.player {
+				display: flex;
+				align-items: center;
+				gap: 12px;
+				padding: 8px;
+				border-radius: 8px;
+				background: var(--glass);
+			}
+			.avatar {
+				width: 36px;
+				height: 36px;
+				border-radius: 8px;
+				background: linear-gradient(180deg, #152139, #0b1624);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-weight: 600;
+			}
+			.big {
+				font-size: 20px;
+			}
+			.btn {
+				display: inline-block;
+				padding: 10px 14px;
+				border-radius: 10px;
+				background: var(--accent);
+				color: white;
+				font-weight: 600;
+				border: none;
+				cursor: pointer;
+			}
+			.btn.ghost {
+				background: transparent;
+				border: 1px solid rgba(255, 255, 255, 0.06);
+			}
+			.theme {
+				font-weight: 700;
+				color: #e6eef8;
+			}
+			.meta {
+				color: var(--muted);
+				font-size: 13px;
+			}
+
+			.stage {
+				min-height: 220px;
+				display: flex;
+				flex-direction: column;
+				gap: 12px;
+				justify-content: center;
+				align-items: center;
+			}
+			.input {
+				width: 100%;
+				padding: 12px;
+				border-radius: 10px;
+				border: 1px solid rgba(255, 255, 255, 0.04);
+				background: transparent;
+				color: inherit;
+			}
+			.phrases {
+				display: flex;
+				flex-direction: column;
+				gap: 10px;
+			}
+			.phrase-card {
+				background: rgba(255, 255, 255, 0.02);
+				padding: 12px;
+				border-radius: 10px;
+			}
+			.rating {
+				display: flex;
+				gap: 8px;
+			}
+			.rating button {
+				padding: 6px 8px;
+				border-radius: 8px;
+				border: none;
+				background: transparent;
+				color: var(--muted);
+				cursor: pointer;
+			}
+			footer {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-top: 12px;
+			}
+			.small {
+				font-size: 12px;
+				color: var(--muted);
+			}
+
+			/* Slide-like transitions */
+			.slide {
+				animation: fadeIn 400ms ease both;
+			}
+			@keyframes fadeIn {
+				from {
+					opacity: 0;
+					transform: translateY(8px);
+				}
+				to {
+					opacity: 1;
+					transform: none;
+				}
+			}
+
+			.center-right {
+				display: flex;
+				flex-direction: column;
+				gap: 12px;
+			}
+			.score {
+				display: flex;
+				flex-direction: column;
+				gap: 6px;
+			}
+
+			.disabled {
+				opacity: 0.5;
+				pointer-events: none;
+			}
+			.rating button.sel {
+				outline: 2px solid rgba(124, 58, 237, 0.6);
+				color: white;
+			}
+			.scoreboard {
+				display: flex;
+				flex-direction: column;
+				gap: 8px;
+			}
+			.score-row {
+				display: flex;
+				justify-content: space-between;
+				padding: 8px;
+				border-radius: 8px;
+				background: rgba(255, 255, 255, 0.02);
+			}
+			.start-screen {
+				position: fixed;
+				inset: 0;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				z-index: 9999;
+				overflow: hidden;
+			}
+
+			.cover {
+				position: absolute;
+				inset: 0;
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				image-rendering: pixelated;
+				z-index: -1;
+			}
+
+			/* Botão 8-bit */
+			.pixel-btn {
+				background: #ffcc00;
+				color: #000;
+				font-family: "Press Start 2P", monospace;
+				padding: 18px 32px;
+				border: 4px solid #000;
+				box-shadow: 6px 6px 0 #000;
+				cursor: pointer;
+				font-size: 22px;
+				text-transform: uppercase;
+				position: relative;
+				z-index: 10;
+				margin-top: 350px;
+			}
+
+			.pixel-btn:active {
+				transform: translate(4px, 4px);
+				box-shadow: 2px 2px 0 #000;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="screen-start" class="start-screen">
+			<img src="capa.png" class="cover" alt="Capa do Jogo" />
+			<button id="btn-start" class="pixel-btn">JOGAR</button>
+		</div>
+
+		<div class="frame" role="application">
+			<header>
+				<div class="logo">FL</div>
+				<div>
+					<h1>Figurados — Protótipo Multijogador</h1>
+					<p class="lead">
+						Clique em "Jogar" para entrar numa sala virtual com até 5 jogadores.
+						Este é um protótipo — jogadores e resultados são simulados.
+					</p>
+				</div>
+			</header>
+
+			<div class="center">
+				<section class="card">
+					<div id="main" class="stage slide">
+						<!-- content injected by JS -->
+					</div>
+					<footer>
+						<div>
+							<button id="resetBtn" class="btn ghost">Reiniciar</button>
+						</div>
+					</footer>
+				</section>
+
+				<aside class="center-right">
+					<div class="card">
+						<div
+							style="
+								display: flex;
+								justify-content: space-between;
+								align-items: center;
+							"
+						>
+							<div>
+								<div class="muted">Sala</div>
+								<div class="big" id="roomId">#0001</div>
+							</div>
+							<div style="text-align: right">
+								<div class="muted">Vagas</div>
+								<div id="spots" class="big">1/5</div>
+							</div>
+						</div>
+						<hr
+							style="
+								border: none;
+								border-top: 1px solid rgba(255, 255, 255, 0.03);
+								margin: 12px 0;
+							"
+						/>
+						<div class="muted">Jogadores na sala</div>
+						<div class="lobby-players" id="playersList"></div>
+					</div>
+
+					<div class="card">
+						<div class="muted">Tema & Figura de linguagem</div>
+						<div style="margin-top: 8px">
+							<div class="theme" id="themeText">—</div>
+							<div class="meta" id="figureText">—</div>
+						</div>
+					</div>
+
+					<div class="card score">
+						<div class="muted">Resultado final</div>
+						<div id="scorePreview" class="meta">Nenhum resultado ainda</div>
+					</div>
+				</aside>
+			</div>
+		</div>
+
+		<script>
+			const startScreen = document.getElementById("screen-start");
+			const startBtn = document.getElementById("btn-start");
+
+			startBtn.addEventListener("click", () => {
+				startScreen.style.display = "none";
+				document.querySelector(".frame").style.display = "block";
+			});
+
+			// ======= Dados do protótipo =======
+			const FIGURAS = [
+				"Metáfora",
+				"Comparação",
+				"Personificação",
+				"Hipérbole",
+				"Paradoxo",
+			];
+			const THEMAS = [
+				"Atrasado na escola",
+				"Primeiro dia de aula",
+				"Perder o ônibus",
+				"Trabalho em grupo",
+				"Prova surpresa",
+			];
+
+			// Predefined bots (nomes fixos como você pediu)
+			const BOT_PLAYERS = [
+				{ id: "a1", name: "Lara", color: "#6ee7b7" },
+				{ id: "b2", name: "Rafael", color: "#60a5fa" },
+				{ id: "c3", name: "Maya", color: "#f472b6" },
+				{ id: "d4", name: "Gust", color: "#facc15" },
+			];
+
+			// Templates
+			const TEMPLATES = {
+				Metáfora: [
+					"A escola virou um trem e eu perdi a estação.",
+					"Meu relógio era areia e escorreu até a aula acabar.",
+				],
+				Comparação: [
+					"Estava atrasado como um relâmpago lento.",
+					"Cheguei tão tarde quanto quem correu contra o vento.",
+				],
+				Personificação: [
+					"O despertador conspirou contra mim esta manhã.",
+					"O corredor me empurrou para fora da aula.",
+				],
+				Hipérbole: [
+					"Demorei tanto que envelheci três vidas antes de entrar.",
+					"Fiquei tão atrasado que o professor já havia virado lenda.",
+				],
+				Paradoxo: [
+					"Cheguei cedo demais para quem sempre chega atrasado.",
+					"Perdi tempo tentando ganhar tempo.",
+				],
+			};
+
+			// Background color by figure
+			const FIGURE_COLORS = {
+				Metáfora: "linear-gradient(180deg,#1e293b,#7c3aed22)",
+				Comparação: "linear-gradient(180deg,#082032,#0ea5e982)",
+				Personificação: "linear-gradient(180deg,#06121a,#06b6d422)",
+				Hipérbole: "linear-gradient(180deg,#2b0218,#ef444422)",
+				Paradoxo: "linear-gradient(180deg,#0b1220,#8b5cf622)",
+			};
+
+			// Estado do jogo
+			let room = {
+				id: genRoomId(),
+				players: [],
+				theme: "",
+				figure: "",
+				myId: "me",
+				maxPlayers: 5,
+			};
+			let userPhrase = "";
+			let otherPhrases = []; // {playerId,name,phrase}
+			let ratings = {}; // playerId -> [numbers]
+			let cumulative = {}; // playerId -> points sum
+			let round = 0;
+
+			// Utils
+			const $ = (id) => document.getElementById(id);
+			function genRoomId() {
+				return "#" + Math.floor(1000 + Math.random() * 9000);
+			}
+
+			// Inicialização dos players (você + bots)
+			function initPlayers() {
+				room.players = [{ id: "me", name: "Você", color: "#a78bfa" }];
+				BOT_PLAYERS.forEach((b) => room.players.push({ ...b }));
+				room.players.forEach((p) => (cumulative[p.id] = 0));
+				renderPlayers();
+			}
+
+			function renderPlayers() {
+				const list = $("playersList");
+				list.innerHTML = "";
+				room.players.forEach((p, idx) => {
+					const div = document.createElement("div");
+					div.className = "player";
+					const av = document.createElement("div");
+					av.className = "avatar";
+					av.style.background = p.color;
+					av.textContent = p.name[0];
+					const txt = document.createElement("div");
+					txt.innerHTML = `<div style="font-weight:700">${p.name}${
+						p.id === "me" ? " (Você)" : ""
+					}</div><div class="muted">${p.status || "Pronto"}</div>`;
+					div.appendChild(av);
+					div.appendChild(txt);
+					list.appendChild(div);
+				});
+				$("spots").textContent = `${room.players.length}/${room.maxPlayers}`;
+				$("roomId").textContent = room.id;
+				updateScorePreview();
+			}
+
+			function updateScorePreview() {
+				const preview = room.players
+					.map(
+						(p) => `${p.name}: ${Number(cumulative[p.id] || 0).toFixed(2)} pts`
+					)
+					.join(" — ");
+				$("scorePreview").textContent = preview || "Nenhum resultado ainda";
+			}
+
+			// Start
+			initPlayers();
+
+			// Landing / Lobby
+			function showLanding() {
+				round = 0;
+				ratings = {};
+				userPhrase = "";
+				otherPhrases = [];
+				// reset cumulative to 0
+				Object.keys(cumulative).forEach((k) => (cumulative[k] = 0));
+				renderPlayers();
+
+				const main = $("main");
+				main.innerHTML = "";
+				const el = document.createElement("div");
+				el.className = "slide";
+				el.innerHTML = `
+        <div style="text-align:center">
+          <div style="font-size:20px;font-weight:700">Bem-vindo</div>
+          <div class="muted" style="margin-top:6px">Sala ${room.id} — simulando outros jogadores</div>
+          <div style="margin-top:14px" class="muted">Máx 5 jogadores — rodadas falsas serão jogadas até alguém atingir 10 pontos.</div>
+          <div style="margin-top:18px">
+            <button id="playBtn" class="btn">Jogar</button>
+          </div>
+        </div>
+      `;
+				main.appendChild(el);
+
+				$("playBtn").addEventListener("click", startRound);
+			}
+
+			// Start a new round
+			function startRound() {
+				round++;
+				ratings = {};
+				userPhrase = "";
+				otherPhrases = [];
+				// pick theme and figure
+				room.theme = THEMAS[Math.floor(Math.random() * THEMAS.length)];
+				room.figure = FIGURAS[Math.floor(Math.random() * FIGURAS.length)];
+				$("themeText").textContent = room.theme;
+				$("figureText").textContent = room.figure;
+				// change background subtly
+				document.body.style.background =
+					FIGURE_COLORS[room.figure] || document.body.style.background;
+
+				// render write screen
+				renderWriteScreen();
+			}
+
+			function renderWriteScreen() {
+				const main = $("main");
+				main.innerHTML = "";
+				const el = document.createElement("div");
+				el.className = "slide";
+				el.innerHTML = `
+        <div style="width:100%">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div class="muted">Tema</div>
+              <div class="theme">${room.theme}</div>
+              <div class="muted">Figura</div>
+              <div class="meta">${room.figure}</div>
+            </div>
+            <div style="text-align:right">
+              <div class="muted">Rodada</div>
+              <div class="big">${round}</div>
+            </div>
+          </div>
+
+          <div style="margin-top:18px">
+            <div class="muted">Escreva sua frase usando a figura de linguagem</div>
+            <textarea id="myInput" class="input" rows="3" placeholder="Ex: perder a corrida da educação..."></textarea>
+            <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center">
+              <div class="muted">Você tem 60 segundos (simulação).</div>
+              <div>
+                <button id="submitPhrase" class="btn">Enviar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+				main.appendChild(el);
+
+				// focus input
+				setTimeout(() => {
+					$("myInput").focus();
+				}, 200);
+
+				// simulate some bots typing in background
+				simulateBotTyping();
+
+				$("submitPhrase").addEventListener("click", () => {
+					userPhrase = $("myInput").value.trim() || generateFallbackPhrase();
+					// mark user status
+					room.players = room.players.map((p) =>
+						p.id === "me" ? { ...p, status: "Enviado" } : p
+					);
+					renderPlayers();
+					// proceed to reveal (simulate other players submitting)
+					revealOthers();
+				});
+			}
+
+			function generateFallbackPhrase() {
+				if (room.figure === "Metáfora")
+					return `Minha ${room.theme} virou labirinto.`;
+				if (room.figure.includes("Comparação"))
+					return `Estou ${room.theme} como uma tartaruga na pista.`;
+				if (room.figure === "Personificação")
+					return `O dia me empurrou longe da escola.`;
+				if (room.figure === "Hipérbole")
+					return `Me atrasei tanto que perdi um século.`;
+				return `Minha ${room.theme} teve um drama inesperado.`;
+			}
+
+			function simulateBotTyping() {
+				// small visual: set status to 'digitando' then 'pronto'
+				room.players.forEach((p, i) => {
+					if (p.id === "me") return;
+					setTimeout(() => {
+						p.status = "Digitando...";
+						renderPlayers();
+					}, 300 + i * 500);
+					setTimeout(() => {
+						p.status = "Pronto";
+						renderPlayers();
+					}, 1300 + i * 700);
+				});
+			}
+
+			function revealOthers() {
+				const main = $("main");
+				main.innerHTML = "";
+				const el = document.createElement("div");
+				el.className = "slide";
+				el.innerHTML = `
+        <div style="text-align:center">
+          <div style="font-weight:700">Aguardando outros jogadores...</div>
+          <div class="muted" style="margin-top:8px">Simulando envio das frases</div>
+        </div>
+      `;
+				main.appendChild(el);
+
+				// simulate short delay then show phrases
+				setTimeout(() => {
+					// combine user + others
+					const all = [{ playerId: "me", name: "Você", phrase: userPhrase }];
+					// generate bot phrases from templates
+					room.players
+						.filter((p) => p.id !== "me")
+						.forEach((p, i) => {
+							const arr = TEMPLATES[room.figure] || ["..."];
+							const template = arr[i % arr.length];
+							const phrase = template.replace(
+								/a escola|escola|manhã|ônibus|sinal/gi,
+								room.theme.toLowerCase()
+							);
+							all.push({ playerId: p.id, name: p.name, phrase });
+						});
+					renderVotingScreen(all);
+				}, 900);
+			}
+
+			function renderVotingScreen(allPhrases) {
+				const main = $("main");
+				main.innerHTML = "";
+				const el = document.createElement("div");
+				el.className = "slide";
+				el.innerHTML = `<div style="width:100%">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div class="muted">Avalie as frases (1-5)</div><div class="muted">Tema: ${room.theme} — ${room.figure}</div></div>
+          <div><button id="finishVoting" class="btn disabled">Finalizar avaliações</button></div>
+        </div>
+        <div style="margin-top:12px" class="phrases" id="phrasesContainer"></div>
+      </div>`;
+				main.appendChild(el);
+
+				const container = $("phrasesContainer");
+				// initialize ratings for each player with simulated other ratings
+				allPhrases.forEach((item) => {
+					ratings[item.playerId] = [];
+				});
+
+				allPhrases.forEach((item) => {
+					const c = document.createElement("div");
+					c.className = "phrase-card";
+
+					const header = document.createElement("div");
+					header.style.display = "flex";
+					header.style.justifyContent = "space-between";
+					header.innerHTML = `
+    <div style="font-weight:700">${item.name}${
+						item.playerId === "me" ? " (Você)" : ""
+					}</div>
+    <div class="muted small">${
+			item.playerId === "me" ? "Sua frase" : "Frase do jogador"
+		}</div>
+  `;
+
+					const body = document.createElement("div");
+					body.style.marginTop = "8px";
+					body.textContent = item.phrase;
+
+					c.appendChild(header);
+					c.appendChild(body);
+
+					// Se não for o jogador "me", adiciona rating
+					if (item.playerId !== "me") {
+						const ratingWrap = document.createElement("div");
+						ratingWrap.className = "rating";
+						ratingWrap.style.marginTop = "8px";
+
+						for (let s = 1; s <= 5; s++) {
+							const btn = document.createElement("button");
+							btn.textContent = s;
+							btn.dataset.score = s;
+							btn.style.marginRight = "6px";
+
+							btn.addEventListener("click", () => {
+								Array.from(ratingWrap.querySelectorAll("button")).forEach((b) =>
+									b.classList.remove("sel")
+								);
+								btn.classList.add("sel");
+								ratings[item.playerId].user = parseInt(btn.dataset.score, 10);
+
+								// Só habilita se todos os outros foram avaliados
+								const others = allPhrases.filter((p) => p.playerId !== "me");
+								const ready = others.every(
+									(p) =>
+										ratings[p.playerId] &&
+										typeof ratings[p.playerId].user === "number"
+								);
+								if (ready) {
+									$("finishVoting").classList.remove("disabled");
+								}
+							});
+
+							ratingWrap.appendChild(btn);
+						}
+
+						c.appendChild(ratingWrap);
+
+						const hint = document.createElement("div");
+						hint.className = "muted small";
+						hint.style.marginTop = "8px";
+						hint.textContent =
+							"(Outros jogadores já deram notas — sua avaliação será somada)";
+						c.appendChild(hint);
+					}
+
+					container.appendChild(c);
+				});
+
+				// When finish, compute averages, add to cumulative, check termination
+				$("finishVoting").addEventListener("click", () => {
+					if ($("finishVoting").classList.contains("disabled")) return; // require ratings
+					finalizeResults(allPhrases);
+				});
+
+				// Also simulate that bots already gave random ratings (so averages aren't only user's)
+				// We'll fill ratings[playerId].bots = [..random..]
+				allPhrases.forEach((item) => {
+					const botsCount = room.players.length - 1; // others excluding target
+					ratings[item.playerId].bots = [];
+					for (let k = 0; k < botsCount; k++) {
+						ratings[item.playerId].bots.push(Math.floor(Math.random() * 5) + 1);
+					}
+				});
+			}
+
+			function finalizeResults(allPhrases) {
+				// calcula médias (mantive sua lógica original)
+				allPhrases.forEach((item) => {
+					const r = ratings[item.playerId] || {};
+					if (typeof r.user !== "number")
+						r.user = Math.round(
+							r.bots.reduce((a, b) => a + b, 0) / r.bots.length
+						);
+
+					const sumBots = r.bots.reduce((a, b) => a + b, 0);
+					const count = r.bots.length + 1;
+					const avg = (sumBots + r.user) / count;
+					r.avg = avg;
+					ratings[item.playerId] = r;
+				});
+
+				// acumula na pontuação total
+				allPhrases.forEach((item) => {
+					const avg = ratings[item.playerId].avg;
+					const noise = item.playerId === "me" ? 0 : Math.random() * 0.6 - 0.3;
+					const points = Math.max(0, avg + noise);
+					cumulative[item.playerId] += points;
+				});
+
+				const main = $("main");
+				main.innerHTML = "";
+				const el = document.createElement("div");
+				el.className = "slide";
+
+				const scores = room.players
+					.map((p) => ({
+						id: p.id,
+						name: p.name,
+						total: cumulative[p.id],
+					}))
+					.sort((a, b) => b.total - a.total);
+
+				const maxScore = scores[0].total;
+				const gameFinished = maxScore >= 10;
+
+				// 🏁 SE terminou o jogo → usa o layout estilizado
+				if (gameFinished) {
+					let html = `
+            <div style="text-align:center">
+                <div style="font-weight:800;font-size:24px">Ranking Final</div>
+            </div>
+            <div style="margin-top:16px">
+        `;
+
+					const podiumStyles = [
+						"background:#facc15;color:#000;font-weight:900;font-size:22px;padding:20px;border-radius:10px;margin-bottom:10px",
+						"background:#9ca3af;color:#000;font-weight:700;font-size:20px;padding:14px;border-radius:10px;margin-bottom:10px",
+						"background:#92400e;color:#fff;font-weight:700;font-size:18px;padding:12px;border-radius:10px;margin-bottom:10px",
+					];
+
+					scores.forEach((p, i) => {
+						if (i < 3) {
+							html += `<div style="${podiumStyles[i]}">${i + 1}. ${p.name}${
+								p.id === "me" ? " (Você)" : ""
+							} — ${p.total.toFixed(2)} pts</div>`;
+						} else {
+							html += `<div class="score-row">${i + 1}. ${p.name}${
+								p.id === "me" ? " (Você)" : ""
+							}<span>${p.total.toFixed(2)} pts</span></div>`;
+						}
+					});
+
+					html += `
+            </div>
+            <div style="margin-top:18px;text-align:center">
+                <div style="font-size:22px;font-weight:900">🏆 Campeão: ${
+									scores[0].name
+								}${scores[0].id === "me" ? " (Você)" : ""}!</div>
+                <button id="again" class="btn" style="margin-top:12px">Reiniciar jogo</button>
+            </div>
+        `;
+
+					el.innerHTML = html;
+					main.appendChild(el);
+					$("again").addEventListener("click", () => showLanding());
+				}
+
+				// 🎯 SENÃO → usa o modelo original (rodadas normais)
+				else {
+					let html = `
+            <div class="scoreboard">
+                <div style="font-weight:700;font-size:20px;margin-bottom:8px">Parcial</div>
+        `;
+					scores.forEach((p, i) => {
+						html += `
+                <div class="score-row">
+                    <span>${i + 1}. ${p.name}${
+							p.id === "me" ? " (Você)" : ""
+						}</span>
+                    <span>${p.total.toFixed(2)} pts</span>
+                </div>`;
+					});
+
+					html += `
+            </div>
+            <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center">
+                <div class="muted">Continuando o jogo...</div>
+                <button id="nextRound" class="btn">Próxima rodada</button>
+            </div>`;
+
+					el.innerHTML = html;
+					main.appendChild(el);
+					$("nextRound").addEventListener("click", () => startRound());
+				}
+
+				updateScorePreview();
+			}
+
+			// Reset button
+			$("resetBtn").addEventListener("click", () => {
+				showLanding();
+			});
+
+			// Inicializa landing
+			showLanding();
+		</script>
+	</body>
+</html>
