@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+			rel="stylesheet"
+		/>
+		<title>Protótipo: Jogo de Figuras de Linguagem — Demo</title>
+		<style>
+			:root {
+				--bg: #0f1724;
+				--card: #0b1220;
+				--muted: #94a3b8;
+				--accent: #7c3aed;
+				--glass: rgba(255, 255, 255, 0.03);
+			}
+			* {
+				box-sizing: border-box;
+			}
+			html,
+			body {
+				height: 100%;
+				margin: 0;
+				font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+					Roboto, "Helvetica Neue", Arial;
+			}
+			body {
+				background: linear-gradient(180deg, #071026 0%, #081427 60%);
+				color: #e6eef8;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: 32px;
+				transition: background 600ms ease;
+			}
+			.frame {
+				display: none;
+				width: 960px;
+				max-width: 96vw;
+				background: linear-gradient(
+					180deg,
+					rgba(255, 255, 255, 0.02),
+					rgba(255, 255, 255, 0.01)
+				);
+				border-radius: 14px;
+				padding: 28px;
+				box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
+			}
+			header {
+				display: flex;
+				align-items: center;
+				gap: 16px;
+				margin-bottom: 20px;
+			}
+			.logo {
+				width: 48px;
+				height: 48px;
+				border-radius: 10px;
+				background: linear-gradient(135deg, var(--accent), #06b6d4);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-weight: 700;
+			}
+			h1 {
+				font-size: 18px;
+				margin: 0;
+			}
+			p.lead {
+				margin: 0;
+				color: var(--muted);
+				font-size: 13px;
+			}
+
+			.center {
+				display: grid;
+				grid-template-columns: 1fr 360px;
+				gap: 20px;
+			}
+			.card {
+				background: var(--card);
+				border-radius: 12px;
+				padding: 18px;
+				backdrop-filter: blur(6px);
+			}
+			.muted {
+				color: var(--muted);
+				font-size: 13px;
+			}
+
+			.lobby-players {
+				display: flex;
+				flex-direction: column;
+				gap: 8px;
+			}
+			.player {
+				display: flex;
+				align-items: center;
+				gap: 12px;
+				padding: 8px;
+				border-radius: 8px;
+				background: var(--glass);
+			}
+			.avatar {
+				width: 36px;
+				height: 36px;
+				border-radius: 8px;
+				background: linear-gradient(180deg, #152139, #0b1624);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-weight: 600;
+			}
+			.big {
+				font-size: 20px;
+			}
+			.btn {
+				display: inline-block;
+				padding: 10px 14px;
+				border-radius: 10px;
+				background: var(--accent);
+				color: white;
+				font-weight: 600;
+				border: none;
+				cursor: pointer;
+			}
+			.btn.ghost {
+				background: transparent;
+				border: 1px solid rgba(255, 255, 255, 0.06);
+			}
+			.theme {
+				font-weight: 700;
+				color: #e6eef8;
+			}
+			.meta {
+				color: var(--muted);
+				font-size: 13px;
+			}
+
+			.stage {
+				min-height: 220px;
+				display: flex;
+				flex-direction: column;
+				gap: 12px;
+				justify-content: center;
+				align-items: center;
+			}
+			.input {
+				width: 100%;
+				padding: 12px;
+				border-radius: 10px;
+				border: 1px solid rgba(255, 255, 255, 0.04);
+				background: transparent;
+				color: inherit;
+			}
+			.phrases {
+				display: flex;
+				flex-direction: column;
+				gap: 10px;
+			}
+			.phrase-card {
+				background: rgba(255, 255, 255, 0.02);
+				padding: 12px;
+				border-radius: 10px;
+			}
+			.rating {
+				display: flex;
+				gap: 8px;
+			}
+			.rating button {
+				padding: 6px 8px;
+				border-radius: 8px;
+				border: none;
+				background: transparent;
+				color: var(--muted);
+				cursor: pointer;
+			}
+			footer {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-top: 12px;
+			}
+			.small {
+				font-size: 12px;
+				color: var(--muted);
+			}
+
+			/* Slide-like transitions */
+			.slide {
+				animation: fadeIn 400ms ease both;
+			}
+			@keyframes fadeIn {
+				from {
+					opacity: 0;
+					transform: translateY(8px);
+				}
+				to {
+					opacity: 1;
+					transform: none;
+				}
+			}
+
+			.center-right {
+				display: flex;
+				flex-direction: column;
+				gap: 12px;
+			}
+			.score {
+				display: flex;
+				flex-direction: column;
+				gap: 6px;
+			}
+
+			.disabled {
+				opacity: 0.5;
+				pointer-events: none;
+			}
+			.rating button.sel {
+				outline: 2px solid rgba(124, 58, 237, 0.6);
+				color: white;
+			}
+			.scoreboard {
+				display: flex;
+				flex-direction: column;
+				gap: 8px;
+			}
+			.score-row {
+				display: flex;
+				justify-content: space-between;
+				padding: 8px;
+				border-radius: 8px;
+				background: rgba(255, 255, 255, 0.02);
+			}
+			.start-screen {
+				position: fixed;
+				inset: 0;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				z-index: 9999;
+				overflow: hidden;
+			}
+
+			.cover {
+				position: absolute;
+				inset: 0;
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				image-rendering: pixelated;
+				z-index: -1;
+			}
+
+			/* Botão 8-bit */
+			.pixel-btn {
+				background: #ffcc00;
+				color: #000;
+				font-family: "Press Start 2P", monospace;
+				padding: 18px 32px;
+				border: 4px solid #000;
+				box-shadow: 6px 6px 0 #000;
+				cursor: pointer;
+				font-size: 22px;
+				text-transform: uppercase;
+				position: relative;
+				z-index: 10;
+				margin-top: 450px;
+			}
+
+			.pixel-btn:active {
+				transform: translate(4px, 4px);
+				box-shadow: 2px 2px 0 #000;
+			}
+
+			/* Botão de ajuda */
+			.help-btn {
+				position: absolute;
+				top: 16px;
+				right: 16px;
+				width: 46px; /* antes: 38px */
+				height: 46px; /* antes: 38px */
+				border-radius: 50%;
+				background: var(--accent);
+				color: white;
+				font-size: 24px; /* ligeiramente maior também */
+				font-weight: 900;
+				border: none;
+				cursor: pointer;
+				box-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
+				transition: transform 0.15s ease;
+			}
+			.help-btn:hover {
+				transform: scale(1.12);
+			}
+
+			/* Modal de instruções */
+			.help-modal {
+				position: fixed;
+				inset: 0;
+				background: rgba(0, 0, 0, 0.55);
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				z-index: 99998;
+				animation: fadeIn 0.3s ease;
+			}
+
+			.help-modal.hidden {
+				display: none;
+			}
+
+			.help-box {
+				width: min(360px, 90vw);
+				background: #131c2b;
+				padding: 22px;
+				border-radius: 14px;
+				box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+				animation: popup 0.35s cubic-bezier(0.22, 1.38, 0.47, 1.18);
+			}
+
+			.help-box h2 {
+				margin: 0 0 12px;
+				font-size: 20px;
+			}
+
+			.help-box ul {
+				padding-left: 20px;
+				margin: 6px 0;
+			}
+
+			.help-close {
+				float: right;
+				background: transparent;
+				border: none;
+				color: #fff;
+				font-size: 18px;
+				cursor: pointer;
+			}
+
+			@keyframes popup {
+				0% {
+					transform: scale(0.7);
+					opacity: 0;
+				}
+				100% {
+					transform: scale(1);
+					opacity: 1;
+				}
+			}
+
+			/* Overlay de introdução */
+			.intro-overlay {
+				position: fixed;
+				inset: 0;
+				background: rgba(
+					0,
+					0,
+					0,
+					0.65
+				); /* antes: 0.88 → muito mais transparente */
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				z-index: 999999;
+				animation: fadeIntro 0.4s ease;
+			}
+
+			.intro-overlay.hidden {
+				display: none;
+			}
+
+			.intro-content {
+				max-width: 950px;
+				color: #ffffff;
+				position: relative;
+				padding: 60px 70px; /* mais espaço */
+				text-align: center;
+				font-size: 26px; /* antes: 18px */
+				line-height: 1.55;
+			}
+
+			/* Título GRANDE */
+			.intro-content h2 {
+				font-size: 42px !important; /* antes: 32px */
+				margin-bottom: 32px;
+			}
+
+			/* Botão X GRANDE e marcante */
+			.intro-close {
+				position: absolute;
+				top: 16px;
+				right: 20px;
+				font-size: 48px; /* antes: 38px */
+				background: transparent;
+				border: none;
+				cursor: pointer;
+				color: #ffffff;
+				transition: transform 0.15s ease;
+			}
+
+			.intro-close:hover {
+				transform: scale(1.35);
+			}
+
+			@keyframes fadeIntro {
+				0% {
+					opacity: 0;
+				}
+				100% {
+					opacity: 1;
+				}
+			}
+
+			/* ========================= */
+			/* 🎞️ HISTÓRIA / SLIDES     */
+			/* ========================= */
+
+			.story-screen {
+				position: fixed;
+				inset: 0;
+				background: #000;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				flex-direction: column;
+				z-index: 99999;
+			}
+
+			.story-img {
+				max-width: 100vw;
+				max-height: 100vh;
+				opacity: 0;
+				transition: opacity 500ms ease;
+			}
+
+			.story-img.visible {
+				opacity: 1;
+			}
+
+			.story-tip {
+				margin-top: 20px;
+				font-size: 18px;
+				color: #ffffff;
+				opacity: 0;
+				transition: opacity 0.4s ease;
+			}
+			.story-tip.visible {
+				opacity: 0.7;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="screen-start" class="start-screen">
+			<img src="capa.png" class="cover" alt="Capa do Jogo" />
+			<button id="btn-start" class="pixel-btn">JOGAR</button>
+		</div>
+		<div id="storyScreen" class="story-screen" style="display: none">
+			<img id="storyImg" class="story-img" src="" alt="História" />
+			<div id="storyTip" class="story-tip">Pressione Enter para continuar</div>
+		</div>
+		<div class="frame" role="application">
+			<header>
+				<div class="logo">FL</div>
+				<div>
+					<h1>Figurados — Protótipo Multijogador</h1>
+					<p class="lead">
+						Clique em "Jogar" para entrar numa sala virtual com até 5 jogadores.
+						Este é um protótipo — jogadores e resultados são simulados.
+					</p>
+				</div>
+			</header>
+
+			<button id="btn-help" class="help-btn">?</button>
+
+			<div id="helpModal" class="help-modal hidden">
+				<div class="help-box">
+					<button class="help-close">✖</button>
+					<h2>Como jogar 🎮</h2>
+					<p>Você entra num dos dois times:</p>
+					<ul>
+						<li>🟨 Time Amarelo</li>
+						<li>🟣 Time Roxo</li>
+					</ul>
+					<p>Cada rodada:</p>
+					<ul>
+						<li>Receba um tema e uma figura de linguagem</li>
+						<li>Escreva sua frase</li>
+						<li>Avalie as frases anônimas dos outros jogadores</li>
+					</ul>
+					<p>Pontuação:</p>
+					<ul>
+						<li>Média das avaliações dadas</li>
+						<li>Somando as notas dos jogadores do time</li>
+					</ul>
+					<p>🏆 Final do jogo:</p>
+					<ul>
+						<li>O time que alcançar <strong>30 pontos</strong> → Vitória!</li>
+					</ul>
+					<p style="margin-top: 10px; font-weight: 600">
+						Boa sorte e mande bem nas figuras! ✨
+					</p>
+				</div>
+			</div>
+
+			<div class="center">
+				<section class="card">
+					<div id="main" class="stage slide">
+						<!-- content injected by JS -->
+					</div>
+					<footer>
+						<div>
+							<button id="resetBtn" class="btn ghost">Reiniciar</button>
+						</div>
+					</footer>
+				</section>
+
+				<aside class="center-right">
+					<div class="card">
+						<div
+							style="
+								display: flex;
+								justify-content: space-between;
+								align-items: center;
+							"
+						>
+							<div>
+								<div class="muted">Sala</div>
+								<div class="big" id="roomId">#0001</div>
+							</div>
+							<div style="text-align: right">
+								<div class="muted">Vagas</div>
+								<div id="spots" class="big">1/6</div>
+							</div>
+						</div>
+						<hr
+							style="
+								border: none;
+								border-top: 1px solid rgba(255, 255, 255, 0.03);
+								margin: 12px 0;
+							"
+						/>
+						<div class="muted">Jogadores na sala</div>
+						<div class="lobby-players" id="playersList"></div>
+					</div>
+
+					<div class="card">
+						<div class="muted">Tema & Figura de linguagem</div>
+						<div style="margin-top: 8px">
+							<div class="theme" id="themeText">—</div>
+							<div class="meta" id="figureText">—</div>
+						</div>
+					</div>
+
+					<div class="card score">
+						<div class="muted">Resultado final</div>
+						<div id="scorePreview" class="meta">Nenhum resultado ainda</div>
+					</div>
+				</aside>
+			</div>
+
+			<div id="introOverlay" class="intro-overlay hidden">
+				<div class="intro-content">
+					<button class="intro-close">✖</button>
+					<h2 style="font-size: 32px; font-weight: 900; margin-bottom: 20px">
+						Torneio das Palavras ⚔️📜
+					</h2>
+					<p style="font-size: 20px; line-height: 1.45; text-align: center">
+						No <strong>Torneio das Palavras</strong>, três guerreiros de
+						<strong>Verbus</strong> e três de <strong>Silêncius</strong> entram
+						na arena para provar qual reino domina as figuras de linguagem.
+						<br /><br />
+						A cada rodada, um <strong>tema</strong> é revelado, e os jogadores
+						precisam criar frases de acordo com a
+						<strong>figura de linguagem</strong> escolhida na rodada.
+						<br /><br />
+						As frases são julgadas <strong>anonimamente</strong> e o reino que
+						atingir <strong>30 pontos</strong> primeiro conquista a <strong>espada verde de honra</strong>.
+					</p>
+				</div>
+			</div>
+		</div>
+
+		<script>
+			// =================== 🎵 ÁUDIO DO JOGO ===================
+			const clickSound = new Audio("sons/enter.mp3");
+			const paperSound = new Audio("sons/paper.mp3");
+			const bgm = new Audio("sons/quiz-music.mp3");
+			const historyBgm = new Audio("sons/history-music.mp3");
+
+			bgm.loop = true;
+			bgm.volume = 0.35; // ajuste se quiser mais alto/baixo
+			historyBgm.loop = true;
+			historyBgm.volume = 0.45;
+			clickSound.volume = 0.2; // 0.0 (mudo) → 1.0 (máximo)
+
+			// Novos sons do fim de jogo
+			const confettiSound = new Audio("sons/confete.mp3");
+			confettiSound.volume = 0.55;
+
+			const victorySound = new Audio("sons/victory.mp3");
+			victorySound.volume = 0.75;
+
+			const loseSound = new Audio("sons/lose.mp3");
+			loseSound.volume = 0.75;
+
+			// iOS/Chrome: música só pode iniciar após interação do usuário 👇
+			let hasInteracted = false;
+			document.addEventListener(
+				"click",
+				() => {
+					if (!hasInteracted) {
+						hasInteracted = true;
+						// Só inicia o som da história aqui, o bgm (quiz) será iniciado em endStory()
+						if (historyBgm.paused) historyBgm.play().catch(() => {});
+					}
+				},
+				{ once: true }
+			);
+
+			// 🔊 Clique global: qualquer clique na página faz som
+			document.addEventListener("click", (e) => {
+				// Evita tocar quando for clicar no próprio áudio internamente
+				if (e.target.tagName !== "AUDIO") {
+					clickSound.currentTime = 0;
+					clickSound.play().catch(() => {});
+				}
+			});
+
+			function playPaper() {
+				paperSound.currentTime = 0;
+				paperSound.play().catch(() => {});
+			}
+
+			// =================== HISTÓRIA ===================
+			const storyScreen = document.getElementById("storyScreen");
+			const storyImg = document.getElementById("storyImg");
+			const storyTip = document.getElementById("storyTip");
+
+			const historia = [
+				"historia/1.png",
+				"historia/2.png",
+				"historia/3.png",
+				"historia/4.png",
+				"historia/5.png",
+				"historia/6.png",
+			];
+
+			let slideIndex = 0;
+			let canAdvance = false;
+
+			function showSlide(index) {
+				storyImg.classList.remove("visible");
+				storyTip.classList.remove("visible");
+				canAdvance = false;
+
+				storyImg.src = historia[index];
+
+				setTimeout(() => {
+					storyImg.classList.add("visible");
+					setTimeout(() => {
+						storyTip.classList.add("visible");
+						canAdvance = true;
+					}, 1000);
+				}, 50);
+			}
+
+			function startStory() {
+				startScreen.style.display = "none";
+				storyScreen.style.display = "flex";
+				showSlide(slideIndex);
+				if (historyBgm.paused) historyBgm.play().catch(() => {});
+				if (!bgm.paused) bgm.pause();
+			}
+
+			function nextSlide() {
+				if (!canAdvance) return;
+
+				slideIndex++;
+				if (slideIndex >= historia.length) {
+					endStory();
+					return;
+				}
+				showSlide(slideIndex);
+			}
+
+			function endStory() {
+				storyScreen.style.display = "none";
+				document.querySelector(".frame").style.display = "block";
+
+				// >> CORREÇÃO: Remover os listeners globais de avanço da história <<
+				document.removeEventListener("click", nextSlide);
+				document.removeEventListener("keydown", nextSlide);
+
+				showLanding();
+				showIntroOnce();
+
+				if (!historyBgm.paused) historyBgm.pause();
+				if (bgm.paused) bgm.play().catch(() => {});
+			}
+
+			document.addEventListener("click", nextSlide);
+			document.addEventListener("keydown", nextSlide);
+
+			// Só mostra uma vez a introdução do torneio
+			let introShown = false;
+			function showIntroOnce() {
+				if (!introShown) {
+					introShown = true;
+					setTimeout(() => {
+						document.getElementById("introOverlay").classList.remove("hidden");
+					}, 400);
+				}
+			}
+
+			const startScreen = document.getElementById("screen-start");
+			const startBtn = document.getElementById("btn-start");
+
+			startBtn.addEventListener("click", () => {
+				playPaper();
+				setTimeout(() => {
+					startStory();
+				}, 300);
+			});
+
+			// ======= Dados do protótipo =======
+			// ======= Dados do protótipo =======
+
+			// Figuras revisadas
+			const FIGURAS = [
+				"Metáfora",
+				"Personificação",
+				"Hipérbole",
+				"Paradoxo",
+				"Comparação",
+			];
+
+			// Novos temas (mantidos)
+			const THEMAS = [
+				"A fita verde",
+				"O lobo",
+				"A avó",
+				"A escolha",
+				"A borboleta",
+			];
+
+			// Predefined bots (mantidos)
+			const BOT_PLAYERS = [
+				{ id: "b1", name: "Lara" },
+				{ id: "b2", name: "Rafael" },
+				{ id: "b3", name: "Maya" },
+				{ id: "b4", name: "Gust" },
+				{ id: "b5", name: "Nico" },
+			];
+
+			// Templates ajustados (sem Antítese, com Paradoxo)
+			const TEMPLATES = {
+				Metáfora: [
+					"A fita verde era a esperança amarrada no seu pulso.",
+					"Aquele lobo era uma sombra faminta caminhando na neve.",
+					"A escolha era um labirinto sem saída correta.",
+				],
+
+				Personificação: [
+					"O lobo riu antes de dar o bote.",
+					"A borboleta sussurrou segredos ao vento.",
+					"A avó conversou com as panelas enquanto cozinhava.",
+				],
+
+				Hipérbole: [
+					"A avó tinha histórias suficientes para durar mil anos.",
+					"A fita verde brilhava mais que o próprio sol.",
+					"O lobo correu mais rápido que o pensamento.",
+				],
+
+				Paradoxo: [
+					"A avó era forte na fraqueza.",
+					"O lobo era selvagem, mas cativo de si mesmo.",
+					"A escolha era obrigatória para quem não tinha opção.",
+					"A borboleta era frágil demais para existir, mas existia.",
+					"A fita verde a prendia enquanto a libertava.",
+				],
+
+				Comparação: [
+					"A borboleta voa como um sonho colorido.",
+					"O lobo uivou como trovão distante.",
+					"A avó era doce como mel em dia frio.",
+				],
+			};
+
+			// Background color by figure
+			const FIGURE_COLORS = {
+				Metáfora: "linear-gradient(180deg,#1e293b,#7c3aed22)",
+				Comparação: "linear-gradient(180deg,#082032,#0ea5e982)",
+				Personificação: "linear-gradient(180deg,#06121a,#06b6d422)",
+				Hipérbole: "linear-gradient(180deg,#2b0218,#ef444422)",
+				Paradoxo: "linear-gradient(180deg,#0b1220,#8b5cf622)",
+			};
+
+			// Estado do jogo
+			let room = {
+				id: genRoomId(),
+				players: [],
+				theme: "",
+				figure: "",
+				myId: "me",
+				maxPlayers: 6,
+			};
+			// Times
+			const TEAMS = {
+				amarelo: { name: "Time Amarelo", color: "#facc15" },
+				roxo: { name: "Time Roxo", color: "#a78bfa" },
+			};
+			let userPhrase = "";
+			let otherPhrases = []; // {playerId,name,phrase}
+			let ratings = {}; // playerId -> [numbers]
+			let cumulative = {}; // playerId -> points sum
+			let round = 0;
+
+			// Utils
+			const $ = (id) => document.getElementById(id);
+			function genRoomId() {
+				return "#" + Math.floor(1000 + Math.random() * 9000);
+			}
+
+			// Inicialização dos players (você + bots)
+			function initPlayers() {
+				room.players = [];
+
+				// Sorteia o seu time
+				const myTeam = Math.random() < 0.5 ? "amarelo" : "roxo";
+				room.players.push({ id: "me", name: "Você", team: myTeam });
+
+				// Embaralha bots para não ficar previsível
+				const bots = [...BOT_PLAYERS].sort(() => Math.random() - 0.5);
+
+				let amareloCount = myTeam === "amarelo" ? 1 : 0;
+				let roxoCount = myTeam === "roxo" ? 1 : 0;
+
+				bots.forEach((b) => {
+					if (amareloCount < 3 && roxoCount < 3) {
+						// Se ambos têm vagas, escolhe aleatório
+						const assignAmarelo = Math.random() < 0.5;
+						if (assignAmarelo && amareloCount < 3) {
+							room.players.push({ ...b, team: "amarelo" });
+							amareloCount++;
+						} else {
+							room.players.push({ ...b, team: "roxo" });
+							roxoCount++;
+						}
+					} else if (amareloCount < 3) {
+						room.players.push({ ...b, team: "amarelo" });
+						amareloCount++;
+					} else {
+						room.players.push({ ...b, team: "roxo" });
+						roxoCount++;
+					}
+				});
+
+				// Garantia final
+				if (amareloCount !== 3 || roxoCount !== 3)
+					console.warn("⚠️ Distribuição inesperada", {
+						amareloCount,
+						roxoCount,
+					});
+
+				// inicia placares
+				room.players.forEach((p) => (cumulative[p.id] = 0));
+				renderPlayers();
+			}
+
+			function renderPlayers() {
+				const list = $("playersList");
+				list.innerHTML = "";
+				room.players.forEach((p, idx) => {
+					const div = document.createElement("div");
+					div.className = "player";
+					const av = document.createElement("div");
+					av.className = "avatar";
+					av.style.background = TEAMS[p.team].color;
+					av.textContent = p.name[0];
+					const txt = document.createElement("div");
+					txt.innerHTML = `<div style="font-weight:700">${p.name}${
+						p.id === "me" ? " (Você)" : ""
+					}</div><div class="muted">${TEAMS[p.team].name}</div>`;
+					div.appendChild(av);
+					div.appendChild(txt);
+					list.appendChild(div);
+				});
+				$("spots").textContent = `${room.players.length}/${room.maxPlayers}`;
+				$("roomId").textContent = room.id;
+				updateScorePreview();
+			}
+
+			function updateScorePreview() {
+				const scores = { amarelo: 0, roxo: 0 };
+				room.players.forEach((p) => (scores[p.team] += cumulative[p.id]));
+
+				$("scorePreview").innerHTML =
+					`${TEAMS.amarelo.name}: ${scores.amarelo.toFixed(1)} pts<br>` +
+					`${TEAMS.roxo.name}: ${scores.roxo.toFixed(1)} pts`;
+			}
+			// Start
+			initPlayers();
+
+			// Landing / Lobby
+			// index.html:861 (Alterar esta seção)
+
+			function showLanding() {
+				console.log("landing");
+				round = 0;
+				ratings = {};
+				userPhrase = "";
+				otherPhrases = [];
+				// reset cumulative to 0
+				Object.keys(cumulative).forEach((k) => (cumulative[k] = 0));
+				renderPlayers();
+
+				const main = $("main");
+				main.innerHTML = "";
+				const el = document.createElement("div");
+				el.className = "slide";
+				el.innerHTML = `
+        <div style="text-align:center">
+          <div style="font-size:20px;font-weight:700">Bem-vindo</div>
+          <div class="muted" style="margin-top:6px">Sala ${room.id} — simulando outros jogadores</div>
+          <div style="margin-top:14px" class="muted">Máx 5 jogadores — rodadas falsas serão jogadas até alguém atingir 10 pontos.</div>
+          <div style="margin-top:18px">
+            <button id="playBtn" class="btn">Jogar</button>
+          </div>
+        </div>
+      `;
+				main.appendChild(el);
+
+				// APLICAR O LISTENER DENTRO DE UM setTimeout,
+				// para garantir que o elemento está na tela:
+				const playButton = $("playBtn");
+				if (playButton) {
+					playButton.addEventListener("click", (e) => {
+						e.stopPropagation(); // <-- Esta é a linha mágica
+						startRound();
+					});
+				}
+
+				// Fechar no botão X
+				document.querySelector(".intro-close").addEventListener("click", () => {
+					document.getElementById("introOverlay").classList.add("hidden");
+				});
+				document
+					.getElementById("introOverlay")
+					.addEventListener("click", (e) => {
+						if (e.target.id === "introOverlay") {
+							document.getElementById("introOverlay").classList.add("hidden");
+						}
+					});
+			}
+
+			// Start a new round
+			function startRound() {
+				console.log("start");
+				round++;
+				ratings = {};
+				userPhrase = "";
+				otherPhrases = [];
+				// pick theme and figure
+				room.theme = THEMAS[Math.floor(Math.random() * THEMAS.length)];
+				room.figure = FIGURAS[Math.floor(Math.random() * FIGURAS.length)];
+				$("themeText").textContent = room.theme;
+				$("figureText").textContent = room.figure;
+				// change background subtly
+				document.body.style.background =
+					FIGURE_COLORS[room.figure] || document.body.style.background;
+
+				// render write screen
+				renderWriteScreen();
+			}
+
+			function renderWriteScreen() {
+				console.log("escrevendo");
+				playPaper();
+				const main = $("main");
+				main.innerHTML = "";
+				const el = document.createElement("div");
+				el.className = "slide";
+				el.innerHTML = `
+        <div style="width:100%">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div class="muted">Tema</div>
+              <div class="theme">${room.theme}</div>
+              <div class="muted">Figura</div>
+              <div class="meta">${room.figure}</div>
+            </div>
+            <div style="text-align:right">
+              <div class="muted">Rodada</div>
+              <div class="big">${round}</div>
+            </div>
+          </div>
+
+          <div style="margin-top:18px">
+            <div class="muted">Escreva sua frase usando a figura de linguagem</div>
+            <textarea id="myInput" class="input" rows="3" placeholder="Ex: perder a corrida da educação..."></textarea>
+            <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center">
+              <div class="muted">Você tem 60 segundos (simulação).</div>
+              <div>
+                <button id="submitPhrase" class="btn">Enviar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+				main.appendChild(el);
+
+				// >> CORREÇÃO FINAL: Bloquear a propagação de todos os cliques dentro do #main
+				main.addEventListener("click", (e) => {
+					// Interrompe qualquer clique dentro do main de propagar
+					// para o body/document, impedindo o retorno ao lobby.
+					e.stopPropagation();
+				});
+
+				// focus input
+				const inputEl = $("myInput");
+				if (inputEl) {
+					inputEl.focus();
+				}
+
+				// simulate some bots typing in background
+				simulateBotTyping();
+
+				$("submitPhrase").addEventListener("click", () => {
+					userPhrase = $("myInput").value.trim() || generateFallbackPhrase();
+					// mark user status
+					room.players = room.players.map((p) =>
+						p.id === "me" ? { ...p, status: "Enviado" } : p
+					);
+					renderPlayers();
+					// proceed to reveal (simulate other players submitting)
+					revealOthers();
+				});
+			}
+
+			function generateFallbackPhrase() {
+				if (room.figure === "Metáfora")
+					return `Minha ${room.theme} virou labirinto.`;
+				if (room.figure.includes("Comparação"))
+					return `Estou ${room.theme} como uma tartaruga na pista.`;
+				if (room.figure === "Personificação")
+					return `O dia me empurrou longe da escola.`;
+				if (room.figure === "Hipérbole")
+					return `Me atrasei tanto que perdi um século.`;
+				return `Minha ${room.theme} teve um drama inesperado.`;
+			}
+
+			function simulateBotTyping() {
+				// small visual: set status to 'digitando' then 'pronto'
+				room.players.forEach((p, i) => {
+					if (p.id === "me") return;
+					setTimeout(() => {
+						p.status = "Digitando...";
+						renderPlayers();
+					}, 300 + i * 500);
+					setTimeout(() => {
+						p.status = "Pronto";
+						renderPlayers();
+					}, 1300 + i * 700);
+				});
+			}
+
+			function revealOthers() {
+				playPaper();
+				const main = $("main");
+				main.innerHTML = "";
+				const el = document.createElement("div");
+				el.className = "slide";
+				el.innerHTML = `
+        <div style="text-align:center">
+          <div style="font-weight:700">Aguardando outros jogadores...</div>
+          <div class="muted" style="margin-top:8px">Simulando envio das frases</div>
+        </div>
+      `;
+				main.appendChild(el);
+
+				// simulate short delay then show phrases
+				setTimeout(() => {
+					// combine user + others
+					const all = [{ playerId: "me", name: "Você", phrase: userPhrase }];
+					// generate bot phrases from templates
+					room.players
+						.filter((p) => p.id !== "me")
+						.forEach((p, i) => {
+							const arr = TEMPLATES[room.figure] || ["..."];
+							const template = arr[i % arr.length];
+							const phrase = template.replace(
+								/a escola|escola|manhã|ônibus|sinal/gi,
+								room.theme.toLowerCase()
+							);
+							all.push({ playerId: p.id, name: p.name, phrase });
+						});
+					renderVotingScreen(all);
+				}, 2500);
+			}
+
+			function renderVotingScreen(allPhrases) {
+				playPaper();
+				const main = $("main");
+				main.innerHTML = "";
+				const el = document.createElement("div");
+				el.className = "slide";
+				el.innerHTML = `<div style="width:100%">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div class="muted">Avalie as frases (1-5)</div><div class="muted">Tema: ${room.theme} — ${room.figure}</div></div>
+          <div><button id="finishVoting" class="btn disabled">Finalizar avaliações</button></div>
+        </div>
+        <div style="margin-top:12px" class="phrases" id="phrasesContainer"></div>
+      </div>`;
+				main.appendChild(el);
+
+				const container = $("phrasesContainer");
+				// initialize ratings for each player with simulated other ratings
+				allPhrases.forEach((item) => {
+					ratings[item.playerId] = [];
+				});
+
+				allPhrases.forEach((item) => {
+					const c = document.createElement("div");
+					c.className = "phrase-card";
+
+					const header = document.createElement("div");
+					header.style.display = "flex";
+					header.style.justifyContent = "space-between";
+					header.innerHTML = `
+  <div style="font-weight:700">Jogador</div>
+  <div class="muted small">Frase anônima</div>
+`;
+
+					const body = document.createElement("div");
+					body.style.marginTop = "8px";
+					body.textContent = item.phrase;
+
+					c.appendChild(header);
+					c.appendChild(body);
+
+					// Se não for o jogador "me", adiciona rating
+					if (item.playerId !== "me") {
+						const ratingWrap = document.createElement("div");
+						ratingWrap.className = "rating";
+						ratingWrap.style.marginTop = "8px";
+
+						for (let s = 1; s <= 5; s++) {
+							const btn = document.createElement("button");
+							btn.textContent = s;
+							btn.dataset.score = s;
+							btn.style.marginRight = "6px";
+
+							btn.addEventListener("click", () => {
+								Array.from(ratingWrap.querySelectorAll("button")).forEach((b) =>
+									b.classList.remove("sel")
+								);
+								btn.classList.add("sel");
+								ratings[item.playerId].user = parseInt(btn.dataset.score, 10);
+
+								// Só habilita se todos os outros foram avaliados
+								const others = allPhrases.filter((p) => p.playerId !== "me");
+								const ready = others.every(
+									(p) =>
+										ratings[p.playerId] &&
+										typeof ratings[p.playerId].user === "number"
+								);
+								if (ready) {
+									$("finishVoting").classList.remove("disabled");
+								}
+							});
+
+							ratingWrap.appendChild(btn);
+						}
+
+						c.appendChild(ratingWrap);
+
+						const hint = document.createElement("div");
+						hint.className = "muted small";
+						hint.style.marginTop = "8px";
+						hint.textContent =
+							"(Outros jogadores já deram notas — sua avaliação será somada)";
+						c.appendChild(hint);
+					}
+
+					container.appendChild(c);
+				});
+
+				// When finish, compute averages, add to cumulative, check termination
+				$("finishVoting").addEventListener("click", () => {
+					if ($("finishVoting").classList.contains("disabled")) return; // require ratings
+					finalizeResults(allPhrases);
+				});
+
+				// Also simulate that bots already gave random ratings (so averages aren't only user's)
+				// We'll fill ratings[playerId].bots = [..random..]
+				allPhrases.forEach((item) => {
+					const botsCount = room.players.length - 1; // others excluding target
+					ratings[item.playerId].bots = [];
+					for (let k = 0; k < botsCount; k++) {
+						ratings[item.playerId].bots.push(Math.floor(Math.random() * 5) + 1);
+					}
+				});
+			}
+
+			function launchConfetti({
+				speed = 5, // 🔥 Velocidade configurável dos confetes
+				duration = 4000, // Tempo total da animação
+				fadeTime = 1200, // Tempo do fade-out no final
+			} = {}) {
+				const canvas = document.createElement("canvas");
+				canvas.style.position = "fixed";
+				canvas.style.inset = 0;
+				canvas.style.pointerEvents = "none";
+				canvas.style.zIndex = "99998";
+				canvas.style.transition = `opacity ${fadeTime}ms ease`;
+				document.body.appendChild(canvas);
+
+				const ctx = canvas.getContext("2d");
+				let W = (canvas.width = window.innerWidth);
+				let H = (canvas.height = window.innerHeight);
+
+				const particles = [];
+				const colors = ["#facc15", "#a78bfa", "#ef4444", "#10b981", "#3b82f6"];
+
+				const total = 180 + Math.random() * 100;
+
+				for (let i = 0; i < total; i++) {
+					particles.push({
+						x: Math.random() * W,
+						y: Math.random() * H - H,
+						w: 8 + Math.random() * 6,
+						h: 10 + Math.random() * 14,
+						color: colors[Math.floor(Math.random() * colors.length)],
+						speed: speed * 0.7 + Math.random() * speed,
+						spin: Math.random() * 0.25 - 0.12,
+						angle: Math.random() * Math.PI * 2,
+					});
+				}
+
+				let running = true;
+
+				function update() {
+					if (!running) return;
+
+					ctx.clearRect(0, 0, W, H);
+
+					particles.forEach((p) => {
+						p.y += p.speed;
+						p.angle += p.spin;
+
+						ctx.save();
+						ctx.translate(p.x, p.y);
+						ctx.rotate(p.angle);
+						ctx.fillStyle = p.color;
+						ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+						ctx.restore();
+
+						if (p.y > H + 40) p.y = -20;
+					});
+
+					requestAnimationFrame(update);
+				}
+
+				update();
+
+				// Quando o tempo acabar → Fade-out suave
+				setTimeout(() => {
+					running = false;
+					canvas.style.opacity = "0";
+					setTimeout(() => canvas.remove(), fadeTime + 100);
+				}, duration);
+			}
+
+			function finalizeResults(allPhrases) {
+				playPaper();
+				// 📌 Calcula médias
+				allPhrases.forEach((item) => {
+					const r = ratings[item.playerId] || {};
+					if (typeof r.user !== "number")
+						r.user = Math.round(
+							r.bots.reduce((a, b) => a + b, 0) / r.bots.length
+						);
+
+					const sumBots = r.bots.reduce((a, b) => a + b, 0);
+					const count = r.bots.length + 1;
+					const avg = (sumBots + r.user) / count;
+					r.avg = avg;
+					ratings[item.playerId] = r;
+				});
+
+				// 📌 Soma nos jogadores
+				allPhrases.forEach((item) => {
+					const avg = ratings[item.playerId].avg;
+					const noise = item.playerId === "me" ? 0 : Math.random() * 0.6 - 0.3;
+					const points = Math.max(0, avg + noise);
+					cumulative[item.playerId] += points;
+				});
+
+				// 📌 Soma por time
+				const teamScores = { amarelo: 0, roxo: 0 };
+				room.players.forEach((p) => (teamScores[p.team] += cumulative[p.id]));
+
+				// 🏁 Condição correta do fim de jogo
+				const gameFinished = teamScores.amarelo >= 30 || teamScores.roxo >= 30;
+
+				let winner = null;
+				let tie = false;
+				if (gameFinished) {
+					if (teamScores.amarelo >= 30 && teamScores.roxo >= 30) {
+						if (teamScores.amarelo > teamScores.roxo) winner = "amarelo";
+						else if (teamScores.roxo > teamScores.amarelo) winner = "roxo";
+						else tie = true;
+					} else {
+						winner = teamScores.amarelo >= 30 ? "amarelo" : "roxo";
+					}
+				}
+
+				if (gameFinished) {
+					const myTeam = room.players.find((p) => p.id === "me").team;
+
+					if (tie) {
+						// Empate: usa apenas confete, sem sons de ganhar/perder
+						confettiSound.currentTime = 0;
+						confettiSound.play().catch(() => {});
+					} else if (winner === myTeam) {
+						// Você venceu 🎆
+						confettiSound.currentTime = 0;
+						confettiSound.play().catch(() => {});
+
+						victorySound.currentTime = 0;
+						victorySound.play().catch(() => {});
+					} else {
+						// Você perdeu 💀
+						loseSound.currentTime = 0;
+						loseSound.play().catch(() => {});
+					}
+				}
+
+				updateScorePreview();
+
+				const main = $("main");
+				main.innerHTML = "";
+				const el = document.createElement("div");
+				el.className = "slide";
+
+				// =========================
+				// 🎯 NÃO FINALIZOU O JOGO
+				// =========================
+				if (!gameFinished) {
+					el.innerHTML = `
+      <div class="scoreboard">
+        <div style="font-weight:700;font-size:20px;margin-bottom:8px">Parcial</div>
+        <div>${TEAMS.amarelo.name}: ${teamScores.amarelo.toFixed(1)} pts</div>
+        <div>${TEAMS.roxo.name}: ${teamScores.roxo.toFixed(1)} pts</div>
+      </div>
+      <div style="margin-top:20px;text-align:right">
+        <button id="nextRound" class="btn">Próxima rodada</button>
+      </div>`;
+					main.appendChild(el);
+					$("nextRound").addEventListener("click", () => {
+						startRound();
+					});
+					return;
+				}
+
+				// =========================
+				// 🏆 TELAS DE FINALIZAÇÃO
+				// =========================
+
+				let titleText = "";
+				let popupText = "";
+				let popupColor = "#fff000";
+
+				if (tie) {
+					titleText = "⚔️ Empate!";
+					popupText = "EMPATE INCRÍVEL!";
+					popupColor = "#ffffff"; // branco neutro para empate
+				} else {
+					titleText = `🏆 Vencedor: ${TEAMS[winner].name}!`;
+					popupText = `${TEAMS[winner].name} Venceu! 🏆`;
+					popupColor = TEAMS[winner].color;
+				}
+
+				el.innerHTML = `
+    <div style="text-align:center">
+      <div style="font-weight:800;font-size:28px;margin-bottom:16px">
+        Resultado Final
+      </div>
+
+      <div style="font-size:22px;font-weight:700;margin-bottom:12px">
+        ${TEAMS.amarelo.name}: ${teamScores.amarelo.toFixed(1)} pts <br>
+        ${TEAMS.roxo.name}: ${teamScores.roxo.toFixed(1)} pts
+      </div>
+
+      <div style="font-size:26px;margin:20px 0;font-weight:900">
+        ${titleText}
+      </div>
+
+      <button id="again" class="btn">Jogar novamente</button>
+    </div>
+  `;
+				main.appendChild(el);
+				$("again").addEventListener("click", () => {
+					showLanding();
+				});
+
+				// ✨ POP-UP GIGANTE ✨
+				const overlay = document.createElement("div");
+				overlay.style.position = "fixed";
+				overlay.style.inset = 0;
+				overlay.style.display = "flex";
+				overlay.style.justifyContent = "center";
+				overlay.style.alignItems = "center";
+				overlay.style.background = "rgba(0,0,0,0.8)";
+				overlay.style.zIndex = "99999";
+				overlay.style.animation = "fadeInWinner 0.5s ease-out";
+
+				const box = document.createElement("div");
+				box.style.background = popupColor;
+				box.style.color = "#000";
+				box.style.padding = "30px 60px";
+				box.style.fontSize = "50px";
+				box.style.fontWeight = "900";
+				box.style.borderRadius = "20px";
+				box.style.boxShadow = "0 0 50px rgba(0,0,0,0.6)";
+				box.style.animation = "popWinner 0.6s cubic-bezier(.22,1.38,.47,1.18)";
+				box.textContent = popupText;
+
+				overlay.appendChild(box);
+				document.body.appendChild(overlay);
+				overlay.addEventListener("click", () => overlay.remove());
+
+				// animações
+				const style = document.createElement("style");
+				style.textContent = `
+    @keyframes fadeInWinner { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes popWinner {
+      0% { transform: scale(0.1); opacity: 0; }
+      60% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+  `;
+				document.head.appendChild(style);
+
+				launchConfetti({ speed: 7, duration: 3000, fadeTime: 1500 });
+			}
+
+			// Reset button
+			$("resetBtn").addEventListener("click", () => {
+				showLanding();
+			});
+
+			// Inicializa landing
+			showLanding();
+
+			const helpBtn = document.getElementById("btn-help");
+			const helpModal = document.getElementById("helpModal");
+			const helpClose = helpModal.querySelector(".help-close");
+
+			helpBtn.addEventListener("click", () => {
+				helpModal.classList.remove("hidden");
+				helpModal.style.opacity = "1";
+			});
+
+			helpClose.addEventListener("click", () => {
+				helpModal.style.opacity = "0";
+				setTimeout(() => helpModal.classList.add("hidden"), 200);
+			});
+
+			helpModal.addEventListener("click", (e) => {
+				if (e.target === helpModal) helpClose.click();
+			});
+		</script>
+	</body>
+</html>
